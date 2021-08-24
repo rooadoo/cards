@@ -1,0 +1,26 @@
+{% extends 'table/base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block extra_head %}
+    {% load static %}
+    <link rel="stylesheet" href='{% static "cah/login.css" %}'>
+{% endblock %}
+
+{% block body %}
+<!-- based off of https://bootsnipp.com/snippets/dldxB  -->
+<div class="wrapper fadeInDown">
+  <div id="formContent">
+
+    <!-- Login Form -->
+    <form method="post">
+      {% csrf_token %}
+      <input type="text" id="login" class="fadeIn second" name="username"
+             autofocus="" required="" placeholder="login" autocorrect="off"
+             autocapitalize="none">
+      <input type="password" id="password" class="fadeIn third" name="password" required="" placeholder="password">
+
+      <input type="submit" class="fadeIn fourth" value="Log In">
+    </form>
+  </div>
+</div>
+{% endblock %}

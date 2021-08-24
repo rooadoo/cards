@@ -1,0 +1,236 @@
+{% extends 'table/base.html' %}
+{% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,700;0,900;1,300&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href='{% static "cah/game.css" %}'>
+{% endblock %}
+
+{% block title %} Edit {{ collection.title }}{% endblock %}
+
+{% block body %}
+<!-- todo Make this a navbar -->
+<div class="input-group">
+    <input id="js-add-deck" type="button" class="btn" value="Add Deck">
+    <button id="refresh" class="unselectable">Refresh Page</button>
+</div>
+
+<div id="other-decks" style="display: none;" data-adddeckurl='{% url "ajax_adddeck" %}'>
+        <table class="table table-sm table-hover">
+            {% for c in other_collections %}
+                <tr class="table-row pointer" id="deck-{{ c.id }}">
+                    <td>{{ c.get_author_display }}</td>
+                    <td>{{ c.title }}</td>
+                    <td>{{ c.description }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+</div>
+
+<div id="collection-cards" data-getdeckcardsurl='{% url "ajax_getdeckcards" %}'>
+    <table id="black-table" class="table table-sm table-hover" data-ajaxurl='{% url "ajax_editcard" %}'>
+        <tr><td>
+            <div class="input-group">
+                <textarea rows=1 class="form-control js-cardtext bg-dark text-white"></textarea>
+                <div class="input-group-append">
+                    <input data-action="a" type="button" data-ajaxurl='{% url "ajax_addcard" %}' class="btn btn-success js-addcard" value="Add">
+                </div>
+            </div>
+        </td></tr>
+    </table>
+
+    <table id="white-table" class="table table-sm table-hover" data-ajaxurl='{% url "ajax_editcard" %}'>
+        <tr><td>
+            <div class="input-group">
+                <textarea rows=1 class="form-control js-cardtext bg-white text-dark"></textarea>
+                <div class="input-group-append">
+                    <input data-action="a" type="button" data-ajaxurl='{% url "ajax_addcard" %}' class="btn btn-success js-addcard" value="Add">
+                </div>
+            </div>
+        </td></tr>
+    </table>
+</div>
+    {% csrf_token %}
+
+    <script>
+        $("#refresh").on('click', function () {window.location.reload()});
+        const collectionid = window.location.href.split('/').slice(-1)[0];
+        const ajaxurl_adddeck = $("#other-decks").attr('data-adddeckurl');
+        const csrf_token = $("input[name=csrfmiddlewaretoken]").val();
+
+        $("tr[id^=deck]").click(function () {
+            let deckid = $(this).attr("id").split('-').slice(1)[0];
+            let data = {
+                "csrfmiddlewaretoken": csrf_token,
+                "deckid": deckid,
+                "collectionid": collectionid
+            };
+            $.ajax(
+                {
+                    url: ajaxurl_adddeck,
+                    method: 'POST',
+                    data: data,
+                    dataType: "json",
+                    success: ajaxresponse
+                }
+            )
+        });
+
+        function ajaxresponse(data) {
+            let $table;
+
+            console.info(data);
+
+            if ('action' in data) {
+                const actions = data['action'];
+                let color;
+                actions.forEach(function (item) {
+                    let args = item.split('-');
+
+                    // Store the table we will be working with
+                    if (args[1] === 'b') {
+                        $table = $("#black-table");
+                        color = 'black';
+                    } else if (args[1] === 'w') {
+                        $table = $("#white-table");
+                        color = 'white';
+                    } else{
+                        console.warn('unknown table '+ args[1]);
+                        return;
+                    }
+
+                    // get card id
+                    let cardid = args[2];
+
+                    switch (args[0]) {
+                        case 'a': // Add new card
+                            let cardtext = atob(args[3]);
+                            addcardline(color, cardtext, cardid);
+                            break;
+
+                        case 'r': //remove existing card
+                            $table.find('tr[data-cardid=' + cardid + ']').remove();
+                            break;
+
+                    }
+                });
+            }
+            autosize();
+        }
+
+
+        $("#js-add-deck").on('click', function () {
+            $("#collection-cards").hide();
+            $("#other-decks").show();
+        });
+
+        function editcard () {
+            const cardtype = $(this).parents('table').attr('id')[0];
+            const edittype = $(this).attr('data-action');
+            const cardid   = $(this).parents('tr').attr('data-cardid');
+            const cardtext = $(this).parent().siblings('textarea').val();
+
+            let data = {
+                "csrfmiddlewaretoken": csrf_token,
+                "cardtype": cardtype,
+                "edittype": edittype,
+                "cardid":   cardid,
+                "cardtext": cardtext,
+                "collectionid": collectionid
+            };
+
+            $.ajax({
+                url: $(this).parents('table').attr("data-ajaxurl"),
+                method: "POST",
+                data: data,
+                dataType: 'json',
+                success: ajaxresponse
+                }
+            );
+        }
+
+        function addcardline(cardcolor, cardtext, id){
+
+            let $line = $($.parseHTML(`
+                <tr><td>
+                    <div class="input-group">
+                        <textarea rows=1 class="form-control js-cardtext"></textarea>
+                        <div class="input-group-append">
+                            <input data-action="o" type="button" class="btn btn-warning js-editcard" value="Edit">
+                            <input data-action="r" type="button" class="btn btn-danger js-editcard" value="Remove">
+                        </div>
+                    </div>
+                </td></tr>
+            `));
+            let $line_textarea = $line.find('textarea');
+
+            let $table;
+            switch (cardcolor) {
+
+                case 'white':
+                    $table = $("#white-table");
+                    $line_textarea.addClass('bg-white');
+                    $line_textarea.addClass('text-dark');
+                    break;
+                case 'black':
+                    $table = $("#black-table");
+                    $line_textarea.addClass('bg-dark');
+                    $line_textarea.addClass('text-white');
+                    break;
+                default:
+                    console.error('unknown card type '+ cardcolor);
+                    return;
+            }
+
+            $line_textarea.text(cardtext);
+            $line.filter('tr').attr('data-cardid', id);
+            $line.find('input').on('click', editcard);
+            $table.find('tr:first').after($line);
+        }
+
+        function autosize() {
+            // Auto-resize code for textareas
+            $('textarea').each(function () {
+                this.setAttribute('style', 'height:' + (this.scrollHeight) + 'px;overflow-y:hidden;');
+            }).on('input', function () {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+
+
+        function loadcards(){
+            $.ajax({
+                url: $('#collection-cards').attr("data-getdeckcardsurl"),
+                method: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrf_token,
+                    'collectionid': collectionid
+                } ,
+                dataType: 'json',
+                success: ajaxresponse
+                }
+            );
+        }
+        loadcards();
+
+        function newcard(){
+            $.ajax({
+                url: $(this).attr('data-ajaxurl'),
+                method: "POST",
+                data: {
+                    "csrfmiddlewaretoken": csrf_token,
+                    'collectionid': collectionid,
+                    'cardtext': $(this).parents('.input-group').children('textarea').val(),
+                    'cardtype': $(this).parents('table').attr('id')[0]
+                },
+                dataType: 'json',
+                success: ajaxresponse
+            });
+            // clear out text field
+            $(this).parents('.input-group').children('textarea').val('')
+        }
+        $('.js-addcard').on('click', newcard)
+
+  </script>
+
+{% endblock %}

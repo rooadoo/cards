@@ -1,0 +1,74 @@
+{% extends 'table/base.html' %}
+{% block title %}{{ game.title }}{% endblock %}
+
+{% block extra_head %}
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,700;0,900;1,300&display=swap" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href='{% static "cah/game.css" %}'>
+{% endblock %}
+
+{% block body %}
+<!-- div element to store data for JS to pick up -->
+<div id="gamedata"
+     data-gameover="{{game.game_over}}"
+     data-gameid="{{game.id}}"
+     data-lobbyurl="{% url 'table-lobby' %}"
+></div>
+
+<!-- Modal -->
+<div class="modal fade" id="mymodal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="mymodalLabel">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="mymodalBody">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="unselectable">
+<div id='topbar' class="d-flex justify-content-between">
+  <div>
+      <input id="skip-round" type="button" class="btn btn-danger" value="Oust Czar">
+  </div>
+
+  <div>
+    Black Card Deck
+    <span class="badge badge-dark" id="blackdeck-count">0</span>
+    <br>
+    White Card Deck
+    <span class="badge badge-light" id="whitedeck-count">0</span>
+  </div>
+</div>
+
+<div id="top-pane" class="card-columns">
+  <div class="card">
+        <ul class="list-group" id="user-list">
+        </ul>
+  </div>
+  <div class="card bg-dark text-light" id="blackcard-hand">
+      <div class="card-body" id="blackcard-0">""</div>
+  </div>
+</div>
+
+<div id="hand" class="card-columns">
+    <div class="card bg-light text-dark" hidden>
+        <div class="card-body">Hidden card to keep card-columns from being removed from DOM</div>
+    </div>
+</div>
+
+<div id="card-czar">
+    <h1 >You are the card czar</h1>
+    <input id="choose-winner" type="button" class="btn btn-danger" value="Skip Not Ready Players">
+</div>
+</div>
+<script src="{% static 'cah/game.js' %}"></script>
+{% endblock %}

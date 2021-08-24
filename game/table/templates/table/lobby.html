@@ -1,0 +1,40 @@
+{% extends 'table/base.html' %}
+
+{% block extra_head %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'cah/lobby.css' %}">
+{% endblock %}
+
+{% block title %}Lobby of degenerates{% endblock %}
+
+{% block body %}
+<h1> Welcome {{ player.name }}!</h1>
+<br>
+Choose a game
+<ul class="list-group">
+    {% for game in games %}
+    {% if not game.game_over %}
+    <div class="d-flex flex-row list-group-item justify-content-around">
+        <div class="d-flex flex-row">
+            <a href="{% url 'table-game' game.id %}">
+                <span class="border rounded">{{ game.name }}</span>
+            </a>
+        </div>
+       {% if user.is_superuser %}
+       <div class="d-flex flex-row">
+           <a href="{% url 'endgame' game.id %}"><button>End Game</button></a>
+       </div>
+       {% endif %}
+    </div>
+    {% endif %}
+    {% endfor %}
+</ul>
+<br>
+Create a Game
+<form method="post">
+{{ gameform }}
+{% csrf_token %}
+
+<input type="submit" Value="Submit">
+</form>
+{% endblock %}

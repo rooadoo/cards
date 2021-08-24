@@ -1,0 +1,52 @@
+{% extends 'table/base.html' %}
+{% block extra_head %}
+<style>
+      .pointer {
+        cursor: pointer;
+      }
+</style>
+{% endblock %}
+{% block body %}
+    <p>
+        Create New Card Collection
+    </p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ CardCollectionForm }}
+        <input type="hidden" name="whichform" value="newcollection">
+        <input type="submit" value="Submit">
+    </form>
+    <br>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ uploadform }}
+        <input type="hidden" name="whichform" value="bulkupload">
+        <input type="submit" value="Submit">
+    </form>
+    <br>
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>Official</th>
+                <th>Deck Name</th>
+            </tr>
+        </thead>
+    {% for c in collections %}
+            <tr data-href="{% url 'table-manage-collection' c.id %}" class="table-row pointer">
+                <td>{{ c.official }}</td>
+                <td>{{ c.title }}</td>
+            </tr>
+    {% endfor %}
+
+    </table>
+
+    <script type="text/javascript">
+    $(document).ready(function($) {
+        $(".table-row").click(function() {
+            window.document.location = $(this).data("href");
+        });
+    });
+    </script>
+
+
+{% endblock %}

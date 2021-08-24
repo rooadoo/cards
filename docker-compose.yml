@@ -1,0 +1,114 @@
+version: "3.7"
+
+volumes:
+  staticfiles: {}
+  database: {}
+
+services:
+  redis:
+    image: redis
+
+  db:
+    image: postgres
+    volumes:
+      - database:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+
+  web:
+    build: .
+    image: local/mygame
+    command: pipenv run /root/web_start.sh
+    tmpfs:
+      - /code/table/migrations
+    volumes:
+      - type: volume
+        source: staticfiles
+        target: /staticfiles
+        read_only: false
+      - type: bind
+        read_only: true
+        source: ./game
+        target: /code
+      - type: bind
+        read_only: true
+        source: ./docker-files/web_start.sh
+        target: /root/web_start.sh
+      - type: bind
+        read_only: false
+        source: /var/log/docker-weblogs
+        target: /var/log/mnt
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DJANGO_PROD=${DJANGO_PROD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  websocket:
+    build: .
+    image: local/mygame
+    command: pipenv run /root/websocket_start.sh
+    volumes:
+      - type: bind
+        read_only: true
+        source: ./game
+        target: /code
+      - type: bind
+        read_only: true
+        source: ./docker-files/websocket_start.sh
+        target: /root/websocket_start.sh
+      - type: bind
+        read_only: false
+        source: /var/log/docker-weblogs
+        target: /var/log/mnt
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS}
+      - DJANGO_PROD=${DJANGO_PROD}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+    ports:
+      - "5000:5000"
+    depends_on:
+      - web
+
+  webstatic:
+    image: nginx
+    volumes:
+      - type: volume
+        source: staticfiles
+        target: /usr/share/nginx/html/static
+        read_only: true
+      - type: bind
+        source: ./docker-files/nginx.conf.template
+        target: /etc/nginx/templates/default.conf.template
+        read_only: true
+      - type: bind
+        source: /etc/letsencrypt/live/${DOMAIN}
+        target: /etc/ssl/private/live/${DOMAIN}
+        read_only: true
+      - type: bind
+        source: /etc/letsencrypt/archive/${DOMAIN}
+        target: /etc/ssl/private/archive/${DOMAIN}
+        read_only: true
+      - type: bind
+        read_only: false
+        source: /var/log/docker-weblogs
+        target: /var/log/mnt
+    ports:
+      - "443:8443"
+    environment:
+      - DOMAIN=${DOMAIN}
+    depends_on:
+      - web
+      - websocket
