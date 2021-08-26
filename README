@@ -10,7 +10,7 @@ pipenv run python manage.py createsuperuser
 #additional accounts can be created using add_user script. or URL\admin page
 
 #### To start production server
-
+install acme-certbot and get certs for domain
 install docker and docker-compose
 Fill out .evn file 
 docker-compose up
