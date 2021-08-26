@@ -1,3 +1,4 @@
+#### To start dev server
 install docker
 install pipenv
 cd cards/game
@@ -7,3 +8,16 @@ pipenv run ./start_devserver.sh
 cd cards/game
 pipenv run python manage.py createsuperuser
 #additional accounts can be created using add_user script. or URL\admin page
+
+#### To start production server
+
+install docker and docker-compose
+Fill out .evn file 
+docker-compose up
+#in new window run
+docker exec -it cards_web_1 /bin/bash
+# in docker window run
+pipenv run python manage.py createsuperuser
+# create superuser with unique name and good password
+crtl-D to exit docker
+login to site using account and create new ones with /admin page
