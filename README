@@ -1,0 +1,9 @@
+install docker
+install pipenv
+cd cards/game
+pipenv install
+pipenv run ./start_devserver.sh
+#In another terminal
+cd cards/game
+pipenv run python manage.py createsuperuser
+#additional accounts can be created using add_user script. or URL\admin page
