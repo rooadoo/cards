@@ -38,6 +38,9 @@ chatSocket.onopen = function(e) {
 
 chatSocket.onclose = function(e) {
   console.error('ws socket closed');
+  if (game_over !== 'True'){
+    window.location.reload(true);
+  }
 };
 
 //// enable events ////
