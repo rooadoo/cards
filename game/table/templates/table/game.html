@@ -10,9 +10,8 @@
 {% block body %}
 <!-- div element to store data for JS to pick up -->
 <div id="gamedata"
-     data-gameover="{{game.game_over}}"
-     data-gameid="{{game.id}}"
-     data-lobbyurl="{% url 'table-lobby' %}"
+     data-gameover="{{ game.game_over }}"
+     data-gameid="{{ game.id }}"
 ></div>
 
 <!-- Modal -->
@@ -39,7 +38,9 @@
   <div>
       <input id="skip-round" type="button" class="btn btn-danger" value="Oust Czar">
   </div>
-
+<div>
+  <a class="btn btn-info" role=button href={% url 'table-lobby' %}>Return To Lobby</a>
+</div>
   <div>
     Black Card Deck
     <span class="badge badge-dark" id="blackdeck-count">0</span>
@@ -57,6 +58,10 @@
   <div class="card bg-dark text-light" id="blackcard-hand">
       <div class="card-body" id="blackcard-0">""</div>
   </div>
+</div>
+
+<div id="gameover">
+  <div class='alert alert-info'><p>Game OVER</p></div>
 </div>
 
 <div id="hand" class="card-columns">

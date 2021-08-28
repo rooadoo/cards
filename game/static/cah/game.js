@@ -1,6 +1,7 @@
 //// Hide different render modes ////
 $card_czar    = $("#card-czar").hide();
 $hand         = $('#hand').hide();
+$gameover     = $('#gameover').hide();
 
 //// Websocket choose ssl if enabled on page ////
 let ws_version = 'ws://';
@@ -11,7 +12,6 @@ if (location.protocol === 'https:') ws_version = 'wss://';
 const $gamedata = $('#gamedata');
 let game_over  = $gamedata.data('gameover');
 const gameid   = $gamedata.data('gameid');
-const lobbyurl = $gamedata.data('data-lobbyurl');
 // Jquery elements from page
 $mymodalLabel = $("#mymodalLabel");
 $mymodalBody = $("#mymodalBody");
@@ -261,9 +261,5 @@ function notify_game_over(){
   $('#blackcard-hand').hide();
   $hand.hide();
   $card_czar.hide();
-
-  let $alert = $("<div class='alert alert-info'><p>'Game OVER'</p></div>");
-  $alert.append($('<a class="btn btn-info" role=button>').attr('href', lobbyurl).text('Click Here to Return To Lobby'));
-
-  $('#top-pane').after($alert)
+  $gameover.show();
 }
