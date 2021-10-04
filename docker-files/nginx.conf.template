@@ -4,15 +4,22 @@ ssl_session_timeout 10m;
 server {
     listen       8443 ssl;
     server_name  ${DOMAIN};
-    ssl_certificate     /etc/ssl/private/live/${DOMAIN}/cert.pem;
+    ssl_certificate     /etc/ssl/private/live/${DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/ssl/private/live/${DOMAIN}/privkey.pem;
     ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
     ssl_ciphers         HIGH:!aNULL:!MD5;
 
+    # OSCP Stapling settings
+    ssl_stapling        on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/ssl/private/live/${DOMAIN}/chain.pem;
+    resolver ${NGINX_RESOLVER};
+
+    # Log redirection to host
     access_log  /var/log/mnt/nginx_access.log ;
     error_log  /var/log/mnt/nginx_error.log  info;
-    root /usr/share/nginx/html;
 
+    root /usr/share/nginx/html;
     location / {
         proxy_pass    http://web:8000/;
         proxy_http_version 1.1;
